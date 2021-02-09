@@ -34,7 +34,8 @@ class Initiator:
             if data:
                 other_players: List[PlayerConfig] = pickle.loads(data)
                 other_players.remove(my_player)
-                return my_player, other_players
+                break
+        return my_player, other_players
 
     def _connect(self):
         self.client.connect(self.addr)
@@ -97,10 +98,10 @@ class Communicator:
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
                 async with message.process():
-                    print(message.body)
+                    print(pickle.loads(message.body))
                     print(message.routing_key)
                     # TODO: put into queue
-                    message_to_put = {'action': message.body, 'player_id': message.routing_key}
+                    message_to_put = {'action': pickle.loads(message.body), 'player_id': message.routing_key}
                     self.queue_events.put_nowait(message_to_put)
 
     def _loop_in_thread(self, method, loop):

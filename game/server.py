@@ -1,6 +1,6 @@
 import socket
 import uuid
-from _thread import start_new_thread  # low-level primitives for working with multiple threads
+from threading import Thread
 import queue
 import pickle
 # TODO: needs to be run through isort for the right import sorting
@@ -33,41 +33,46 @@ class Orchestrator:
         print("Waiting for a connection")
 
     def orchestrate(self):
-        while True:
-            # Set up a queue in message broker for future communication between players
-            # TODO: abstraction from message broker needed; probably using abstract base classes and / or facade pattern
-            connection = pika.BlockingConnection(
-                pika.ConnectionParameters(host=self.host))
-            channel = connection.channel()
-            channel.exchange_declare(exchange='moves', exchange_type='direct')
+        # Set up a queue in message broker for future communication between players
+        # TODO: abstraction from message broker needed; probably using abstract base classes and / or facade pattern
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=self.host))
+        channel = connection.channel()
+        channel.exchange_declare(exchange='moves', exchange_type='direct')
 
+        sockets = []
+        while True:
             # `conn` is a new socket object usable to send and receive data on the connection
             # `address` is the address bound to the socket on the other end of the connection.
             conn, addr = self.socket.accept()
+            sockets.append(conn)
             print(conn, type(conn))
             print("Connected to: ", addr)
 
             # Start a new thread and return its identifier.
             # The thread executes the function function with the argument list args (which must be a tuple).
-            # TODO: asyncio implmenetation might be better
-            start_new_thread(self.handle_connection, (conn,))
+            # TODO: asyncio implementation might be better
+            thread = Thread(target=self.handle_connection, args=(conn,))
+            thread.start()
+            thread.join()
+
+            if self.connected_players_queue.qsize() == expected_players:
+                print("HELLO")
+                for conn in sockets:
+                    conn.sendall(pickle.dumps(list(self.connected_players_queue.queue)))
+                    print("Connection Closed")
+                    conn.close()
 
     def handle_connection(self, conn: socket.socket):
-        config_player = self.config_players_queue.get()
+        config_player = self.config_players_queue.get_nowait()
         # TODO: pickle is not the best tool, since can be used only for Python and has security issues.
         conn.send(pickle.dumps(config_player))
         self.config_players_queue.task_done()
 
-        self.connected_players_queue.put(config_player)
+        self.connected_players_queue.put_nowait(config_player)
         # TODO: refactor methods, better division of responsibilities
         # TODO: idea with second queue is not perfect - any other structure with shared data? look into asyncio
         # TODO: implement max possible number of players
-        if self.connected_players_queue.qsize() == expected_players:
-            print("HELLO")
-            conn.sendall(pickle.dumps((list(self.connected_players_queue.queue))))
-
-        print("Connection Closed")
-        conn.close()
 
 
 host = '192.168.178.43'

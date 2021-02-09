@@ -53,14 +53,10 @@ class GameController:
         self.my_paddle.rect.y = my_player.coord_y
         all_sprites_list.add(self.my_paddle)
 
-        all_paddles = []
-        for player in other_players:
-            paddle = Paddle(self.WHITE, 10, 100)
-            paddle.rect.x = player.coord_x
-            paddle.rect.y = player.coord_y
-            paddle.uuid = str(player.uuid)
-            all_sprites_list.add(paddle)
-            all_paddles.append(paddle)
+        self.other_paddle = Paddle(self.WHITE, 10, 100)
+        self.other_paddle.rect.x = other_players[0].coord_x
+        self.other_paddle.rect.y = other_players[0].coord_y
+        all_sprites_list.add(self.other_paddle)
 
         # The clock will be used to control how fast the screen updates
         clock = pygame.time.Clock()
@@ -88,27 +84,26 @@ class GameController:
                             exchange=exchange,
                             routing_key=routing_key,
                             body=pickle.dumps(
-                                {'action': pygame.K_UP, 'player_id': str(my_player.uuid)}))
+                                {'action': "up", 'player_id': str(my_player.uuid)}))
                     if event.key == pygame.K_DOWN:  # Pressing the x Key will quit the game
                         self.my_paddle.moveDown(5)
                         mq_channel.basic_publish(
                             exchange=exchange,
                             routing_key=routing_key,
                             body=pickle.dumps(
-                                {'action': pygame.K_DOWN, 'player_id': str(my_player.uuid)}))
+                                {'action': "down", 'player_id': str(my_player.uuid)}))
             try:
-                message = pickle.loads(self.queue_events.get_nowait())
+                message = self.queue_events.get_nowait()
                 self.queue_events.task_done()
-                for paddle in all_paddles:
-                    if paddle.uuid == message['player_id']:
-                        if message['action'] == pygame.K_UP:
-                            paddle.moveUp(5)
-                        elif message['action'] == pygame.K_DOWN:
-                            paddle.moveDown(5)
+                if message['action'] == "up":
+                    self.other_paddle.moveUp(5)
+                elif message['action'] == "down":
+                    self.other_paddle.moveDown(5)
             except queue.Empty:
-                next
+                pass
+                # print("Was empty")
 
-                # --- Game logic should go here
+            # --- Game logic should go here
             all_sprites_list.update()
 
             # Check if the ball is bouncing against any of the 4 walls:
@@ -127,9 +122,8 @@ class GameController:
             if pygame.sprite.collide_mask(self.ball, self.my_paddle):
                 self.ball.bounce()
 
-            for paddle in all_paddles:
-                if pygame.sprite.collide_mask(self.ball, paddle):
-                    self.ball.bounce()
+            if pygame.sprite.collide_mask(self.ball, self.other_paddle):
+                self.ball.bounce()
 
             # --- Drawing code should go here
             # First, clear the screen to black.
