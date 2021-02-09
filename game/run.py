@@ -4,6 +4,7 @@ import socket
 from typing import List, Type
 import threading
 import queue
+import sys
 
 from aio_pika import connect_robust
 import pika
@@ -22,7 +23,7 @@ class Initiator:
 
     def __init__(self, host: str, port: int):
         self.host = host
-        self.port = port
+        self.port = int(port)
         self.addr = (self.host, self.port)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -72,16 +73,17 @@ class Communicator:
         # TODO: I need to close connection somewhere: `connection.close()`
 
     def _set_up_msg_broker_connection(self):
+        # connection = pika.BlockingConnection(
+        #    pika.ConnectionParameters(host=self.msg_broker_host)
         connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=self.msg_broker_host))
+            pika.ConnectionParameters(host='rabbitmq'))
         channel = connection.channel()
         return channel
 
     async def _listen(self, loop):
         # TODO: user and pwd should be submitted (pwd manager? parameter store?), not hardcored
-        connection = await connect_robust(
-            f"amqp://guest:guest@{self.msg_broker_host}/", loop=loop
-        )
+        connection = await connect_robust("amqp://guest:guest@rabbitmq/", loop=loop)
+        # connection = await connect_robust(f"amqp://guest:guest@{self.msg_broker_host}/", loop=loop)
         queue_name = ""
 
         # Creating channel
@@ -156,8 +158,10 @@ class Player:
 
 
 # I use same host for communication over sockets and message broker
-host = "192.168.178.43"
-port = 5555
+# host = "192.168.178.43"
+# port = 5555
+host = sys.argv[1]
+port = sys.argv[2]
 
 initiator = Initiator(host=host, port=port)
 player = Player(

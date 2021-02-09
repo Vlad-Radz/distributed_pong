@@ -3,6 +3,7 @@ import uuid
 from threading import Thread
 import queue
 import pickle
+import sys
 # TODO: needs to be run through isort for the right import sorting
 # TODO: use structlog for better logging
 
@@ -13,9 +14,9 @@ from player_config import PlayerConfig
 
 class Orchestrator:
 
-    def __init__(self, host: str, port: int, my_queue: queue.Queue):
+    def __init__(self, host: str, port: str, my_queue: queue.Queue):
         self.host = host
-        self.port = port
+        self.port = int(port)
         self.config_players_queue = my_queue
         self.connected_players_queue = queue.Queue()
 
@@ -26,7 +27,8 @@ class Orchestrator:
         # AF_INET & AF_INET6: address (and protocol) families
         # SOCK_STREAM means that it is a TCP socket.
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind((self.host, self.port))  # Bind the socket to address
+        addr = (self.host, self.port)
+        self.socket.bind(addr)  # Bind the socket to address
         # Enable a server to accept connections
         # number of unaccepted connections that the system will allow before refusing new connections
         self.socket.listen(expected_players)
@@ -75,8 +77,10 @@ class Orchestrator:
         # TODO: implement max possible number of players
 
 
-host = '192.168.178.43'
-port = 5555
+host = sys.argv[1]
+port = sys.argv[2]
+# host = '192.168.178.43'
+# port = 5555
 expected_players = 2
 
 player_left = PlayerConfig(

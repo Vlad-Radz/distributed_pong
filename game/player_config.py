@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from uuid import UUID
 
 # TODO: evaluate, whether namedtuple or attrs can be more suitable for this use case

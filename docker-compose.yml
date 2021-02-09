@@ -1,0 +1,36 @@
+version: '3.9'
+
+networks:
+  cbr-open-data:
+    driver: bridge
+
+services:
+      server:
+        build:
+            context: .
+            dockerfile: ./Dockerfile_server
+        restart: always
+        networks:
+          - cbr-open-data
+        ports:
+          - "5555:5555"
+        environment:
+          LISTEN_HOST: '0.0.0.0'
+          LISTEN_PORT: 5555
+      client:
+        build:
+            context: .
+            dockerfile: ./Dockerfile_client
+        restart: always
+        networks:
+          - cbr-open-data
+        volumes:
+          - my_volume:/my_volume
+        environment:
+          SEND_HOST: server
+          SEND_PORT: 5555
+      rabbitmq:
+        image: "rabbitmq:3"
+
+volumes:
+  my_volume:

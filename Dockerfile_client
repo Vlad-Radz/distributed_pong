@@ -1,0 +1,10 @@
+FROM python:3
+
+COPY ./ ./
+
+VOLUME /my_volume
+
+RUN pip install -r requirements.txt
+
+# CMD [ "python", "./run.py" ]
+CMD python -u ./game/run.py $SEND_HOST $SEND_PORT

@@ -1,0 +1,10 @@
+FROM python:3
+
+COPY ./ ./
+
+VOLUME /my_volume
+
+RUN pip install -r requirements.txt
+
+# CMD [ "python", "./server.py" ]
+CMD python -u ./game/server.py $LISTEN_HOST $LISTEN_PORT
