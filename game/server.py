@@ -75,6 +75,7 @@ class Orchestrator:
         # TODO: implement max possible number of players
 
 
+# TODO: to env vars
 host = '192.168.178.43'
 port = 5555
 expected_players = 2
