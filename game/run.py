@@ -3,6 +3,7 @@ import pickle
 import socket
 from typing import List, Type
 import threading
+import queue
 
 from aio_pika import connect_robust
 import pika
@@ -58,13 +59,15 @@ class Communicator:
             msg_broker_host: str,
             my_routing_key: str,
             other_routing_keys: List[str],
-            topics: List[str]):
+            topics: List[str],
+            queue_events: asyncio.Queue):
         self.msg_broker_host = msg_broker_host
         self.my_routing_key = my_routing_key
         self.other_routing_keys = other_routing_keys
         self.mq_channel = self._set_up_msg_broker_connection()
         self.topics = topics
         self.exchange = 'moves'  # TODO: is not good that it knows the name of exchange - should get it from orchestrator
+        self.queue_events = queue_events
         # TODO: I need to close connection somewhere: `connection.close()`
 
     def _set_up_msg_broker_connection(self):
@@ -72,13 +75,6 @@ class Communicator:
             pika.ConnectionParameters(host=self.msg_broker_host))
         channel = connection.channel()
         return channel
-
-    def publish_move(self):
-        self.mq_channel.basic_publish(
-            exchange=self.exchange,
-            routing_key=self.my_routing_key,
-            body='Hello World!')
-        print(" [x] Sent message")
 
     async def _listen(self, loop):
         # TODO: user and pwd should be submitted (pwd manager? parameter store?), not hardcored
@@ -104,17 +100,19 @@ class Communicator:
                     print(message.body)
                     print(message.routing_key)
                     # TODO: put into queue
+                    message_to_put = {'action': message.body, 'player_id': message.routing_key}
+                    self.queue_events.put_nowait(message_to_put)
 
-    def loop_in_thread(self, loop):
+    def _loop_in_thread(self, method, loop):
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(self._listen(loop))
+        loop.run_until_complete(method(loop))
 
     def listen(self):
         '''
         This method will be run in background, listening to new events
         '''
         loop = asyncio.get_event_loop()
-        t = threading.Thread(target=self.loop_in_thread, args=(loop,))
+        t = threading.Thread(target=self._loop_in_thread, args=(self._listen,loop,))
         t.start()
 
 
@@ -133,18 +131,27 @@ class Player:
 
         my_player, other_players = initiator.get_configs()
         print(my_player, other_players)
-        my_id = my_player.uuid
+        my_id = str(my_player.uuid)
         other_players_ids = [str(player.uuid) for player in other_players]
+
+        queue_events = queue.Queue()
 
         # TODO: here is a potential bug: I don't check, if everybody subscribed to all the required topics -> missed moves
         self.communicator = communicator(
             msg_broker_host=mq_host,
             my_routing_key=my_id,
             other_routing_keys=other_players_ids,
-            topics=other_players_ids)
+            topics=other_players_ids,
+            queue_events=queue_events)
+        mq_channel = self.communicator.mq_channel
         self.communicator.listen()
         self.game_controller = game_controller(
-            my_player=my_player, other_players=other_players)
+            my_player=my_player,
+            other_players=other_players,
+            queue_events=queue_events,
+            mq_channel=mq_channel,  # TODO: these 3 lines are bad; use an async queue instead, to keep division of responsibilities
+            exchange=self.communicator.exchange,
+            routing_key=self.communicator.my_routing_key)
 
 
 # I use same host for communication over sockets and message broker
@@ -155,4 +162,5 @@ initiator = Initiator(host=host, port=port)
 player = Player(
     mq_host=host,
     initiator=initiator,
-    communicator=Communicator)
+    communicator=Communicator,
+    game_controller=GameController)
