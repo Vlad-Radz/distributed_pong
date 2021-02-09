@@ -14,10 +14,6 @@ from game_objects.ball import Ball
 class GameController:
 
     # TODO: my_paddle: check for key pressing inside pygame event loop.
-    # If no pressed, then check the queue --> should be as attribute
-    # We should get not only the move, but also the routing_key --> loop over paddled and move the ones, whose was moved
-    # --> list of paddles
-    # Also I should get coordinates for my_paddle
     def __init__(
             self,
             my_player,

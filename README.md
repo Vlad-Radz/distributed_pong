@@ -2,7 +2,7 @@
 
 This project shows how a famous game Pong can be created using asynchronous & socket programming in Python.
 
-## Prerequisites
+## Prerequisites for the project
 
 - Crying newborn;
 - max. 4 hours of sleep;
@@ -35,6 +35,21 @@ This project shows how a famous game Pong can be created using asynchronous & so
 1. Orchestarting server works well;
 2. Real-time communication over message broker (RabbitMQ) worked;
 3. Some design decisions might be not that bad.
+
+## Architecture of the system
+1. RabbitMQ runs on a server. It will be used to send information about moves of paddles (and in the future same should
+be done for the ball - otherwise it doesn't work).
+2. `server.py` starts listening to a socket and accepting connections.
+3. `server.py` gives unique ID and starting coordinates for a paddle for each new connection
+4. One connection is one instance of `run.py`, which is connecting to socket of `server.py`, getting ID and
+starting coordinates anf afterwards pulling the socket for new data from the server.
+5. After required number of players were connected (e.g. 2), server sends full list of players (with their IDs and
+starting coordinates for paddles) to each connection. The role of the server finished with that
+(in current implementation).
+6. ID given by server is used as topic in message broker (in our case - RabbitMQ). That means, that each connection
+(instance of `run.py`) uses own ID for sending own moves, and subscribes to topics of other connections to get moves of
+other players. Connection is listening for the topics in background (implemented using `threading` and `asyncio`).
+7. `Pygame` is being rendered on each instance.  
 
 ## Deployment
 1. Setup rabbitmq using docker - run on your localhost;

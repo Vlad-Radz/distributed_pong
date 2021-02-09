@@ -19,10 +19,6 @@ class Orchestrator:
         self.config_players_queue = my_queue
         self.connected_players_queue = queue.Queue()
 
-        # socket: A socket is one endpoint of a two-way communication link between two programs running on the network.
-        # socket: is bound to a port number so that the TCP layer can identify the app that data is destined to be sent to.
-        # socket: software structure
-        # ####
         # AF_INET & AF_INET6: address (and protocol) families
         # SOCK_STREAM means that it is a TCP socket.
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
