@@ -53,7 +53,7 @@ class Orchestrator:
             thread.join()
 
             if self.connected_players_queue.qsize() == expected_players:
-                print("HELLO")
+                print("Required number of players were connected.")
                 for conn in sockets:
                     conn.sendall(pickle.dumps(list(self.connected_players_queue.queue)))
                     print("Connection Closed")
@@ -80,13 +80,15 @@ player_left = PlayerConfig(
     uuid=uuid.uuid4(),
     side='left',
     coord_x=20,
-    coord_y=200)
+    coord_y=200,
+    eligible_to_start=True)
 
 player_right = PlayerConfig(
     uuid=uuid.uuid4(),
     side='right',
     coord_x=670,
-    coord_y=200)
+    coord_y=200,
+    eligible_to_start=False)  # TODO: the choice of eligible to start should happen automatically and exclude possibility of double assignment
 
 # Not needed now, because not implemented yet
 player_up = ...

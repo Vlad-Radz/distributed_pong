@@ -6,9 +6,11 @@ from typing import List
 import pickle
 
 import pygame
+import pika
 
 from game_objects.paddle import Paddle
 from game_objects.ball import Ball
+from player_config import PlayerConfig
 
 
 class GameController:
@@ -16,12 +18,12 @@ class GameController:
     # TODO: my_paddle: check for key pressing inside pygame event loop.
     def __init__(
             self,
-            my_player,
+            my_player: PlayerConfig,
             other_players: List,
             queue_events: queue.Queue,
-            mq_channel,
-            exchange,
-            routing_key):
+            mq_channel: pika.channel.Channel,
+            exchange: str,
+            routing_key: str):
         print(routing_key)
         self.queue_events = queue_events
 
@@ -102,6 +104,9 @@ class GameController:
             # --- Game logic should go here
             all_sprites_list.update()
 
+            # TODO remove
+            # if self.my_player.eligible_to_start:
+
             # Check if the ball is bouncing against any of the 4 walls:
             if self.ball.rect.x >= 690:
                 scoreA += 1
@@ -114,7 +119,8 @@ class GameController:
             if self.ball.rect.y < 0:
                 self.ball.velocity[1] = -self.ball.velocity[1]
 
-                # Detect collisions between the ball and the paddles
+            print(self.ball.rect)
+            # Detect collisions between the ball and the paddles
             if pygame.sprite.collide_mask(self.ball, self.my_paddle):
                 self.ball.bounce()
 

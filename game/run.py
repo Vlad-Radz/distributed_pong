@@ -1,7 +1,7 @@
 import asyncio
 import pickle
 import socket
-from typing import List, Type
+from typing import List, Tuple, Type
 import threading
 import queue
 
@@ -26,9 +26,9 @@ class Initiator:
         self.addr = (self.host, self.port)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def get_configs(self):
+    def get_configs(self) -> Tuple[PlayerConfig, List[PlayerConfig]]:
         my_player = self._connect()
-        print(my_player)
+        print(f"My player is: {my_player}")
         while True:
             data = self.client.recv(2048)
             if data:
@@ -100,7 +100,6 @@ class Communicator:
                 async with message.process():
                     print(pickle.loads(message.body))
                     print(message.routing_key)
-                    # TODO: put into queue
                     message_to_put = pickle.loads(message.body)
                     self.queue_events.put_nowait(message_to_put)
 

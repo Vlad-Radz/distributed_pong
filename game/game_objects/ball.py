@@ -1,7 +1,6 @@
 """
 Reference: https://www.101computing.net/pong-tutorial-using-pygame-adding-a-scoring-system/
 """
-from random import randint
 
 import pygame
 
@@ -24,7 +23,7 @@ class Ball(pygame.sprite.Sprite):
         # Draw the ball (a rectangle!)
         pygame.draw.rect(self.image, color, [0, 0, width, height])
 
-        self.velocity = [randint(4, 8), randint(-8, 8)]
+        self.velocity = [4, -2]  # TODO: would be good to make the choice random
 
         # Fetch the rectangle object that has the dimensions of the image.
         self.rect = self.image.get_rect()
@@ -35,4 +34,4 @@ class Ball(pygame.sprite.Sprite):
 
     def bounce(self):
         self.velocity[0] = -self.velocity[0]
-        self.velocity[1] = randint(-8, 8)
+        self.velocity[1] = 2
