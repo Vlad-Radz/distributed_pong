@@ -4,6 +4,8 @@ Reference: https://www.101computing.net/pong-tutorial-using-pygame-adding-a-scor
 import queue
 from typing import List
 import pickle
+import os
+from pathlib import Path
 
 import pygame
 
@@ -28,9 +30,10 @@ class GameController:
         # Open a new window
         size = (700, 500)
         self.screen = pygame.display.set_mode(size)
-        pygame.display.set_caption("Pong")
+        pygame.display.set_caption('Pong')
 
-        bg = pygame.image.load("../static/background_game_start.gif")
+        bg = pygame.image.load(
+            os.path.join(Path(__file__).resolve().parent.parent, 'static/background_game_start.gif'))
         self.screen.blit(bg, (0, 0))
         self.screen.blit(pygame.font.SysFont('Helvetica', 36).render(
             'Waiting for another player to join...', 1, self.WHITE), (90, 10))
