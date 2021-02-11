@@ -115,6 +115,15 @@ class Communicator:
         t = threading.Thread(target=self._loop_in_thread, args=(self._listen,loop,))
         t.start()
 
+    def publish(self, message: dict):
+        '''
+        Facade method for the publish method of RabbitMQ
+        '''
+        self.mq_channel.basic_publish(
+            exchange=self.exchange,
+            routing_key=self.my_routing_key,
+            body=pickle.dumps(message))
+
 
 class Player:
     '''
@@ -129,8 +138,8 @@ class Player:
             game_controller: Type[GameController]):
         self.initiator = initiator
 
-        # TODO: here we should init Player
-        # TODO: also pass communicator to player and make a method of publishing
+        self.game_controller = game_controller()
+
         my_player, other_players = initiator.get_configs()
         print(my_player, other_players)
         my_id = str(my_player.uuid)
@@ -145,16 +154,12 @@ class Player:
             other_routing_keys=other_players_ids,
             topics=other_players_ids,
             queue_events=queue_events)
-        mq_channel = self.communicator.mq_channel
-        self.communicator.listen()
-        self.game_controller = game_controller(
+        self.communicator.listen()  # This will open a thread with daemon listening for messages from message broker
+        self.game_controller.play(
+            communicator=self.communicator,
             my_player=my_player,
             other_players=other_players,
-            queue_events=queue_events,
-            mq_channel=mq_channel,  # TODO: these 3 lines are bad; use an async queue instead, to keep division of responsibilities
-            exchange=self.communicator.exchange,  # TODO: now it's a violation of the Law of Demeter
-            routing_key=self.communicator.my_routing_key)
-        self.game_controller.play()
+            queue_events=queue_events)
 
 
 # I use same host for communication over sockets and message broker

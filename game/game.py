@@ -10,7 +10,6 @@ import pygame
 from game_objects.paddle import Paddle
 from game_objects.ball import Ball
 
-
 class GameController:
 
     # TODO: my_paddle: check for key pressing inside pygame event loop.
@@ -18,21 +17,7 @@ class GameController:
     # We should get not only the move, but also the routing_key --> loop over paddled and move the ones, whose was moved
     # --> list of paddles
     # Also I should get coordinates for my_paddle
-    def __init__(
-            self,
-            my_player,
-            other_players: List,
-            queue_events: queue.Queue,
-            mq_channel,
-            exchange,
-            routing_key):
-        print(routing_key)
-        self.queue_events = queue_events
-        self.my_player = my_player
-        self.other_players = other_players
-        self.mq_channel = mq_channel
-        self.exchange = exchange
-        self.routing_key = routing_key
+    def __init__(self):
 
         pygame.init()
 
@@ -51,24 +36,30 @@ class GameController:
             'Waiting for another player to join...', 1, self.WHITE), (90, 10))
         pygame.display.update()
 
-    def play(self):
-        self.ball = Ball(self.WHITE, 10, 10)
-        self.ball.rect.x = 345
-        self.ball.rect.y = 195
+    def play(
+            self,
+            communicator,  # TODO: not the best pattern. Reason: non-ideal design upfront
+            my_player,
+            other_players: List,
+            queue_events: queue.Queue):
+
+        ball = Ball(self.WHITE, 10, 10)
+        ball.rect.x = 345
+        ball.rect.y = 195
 
         # This will be a list that will contain all the sprites we intend to use in our game.
         all_sprites_list = pygame.sprite.Group()
-        all_sprites_list.add(self.ball)
+        all_sprites_list.add(ball)
 
-        self.my_paddle = Paddle(self.WHITE, 10, 100)
-        self.my_paddle.rect.x = self.my_player.coord_x
-        self.my_paddle.rect.y = self.my_player.coord_y
-        all_sprites_list.add(self.my_paddle)
+        my_paddle = Paddle(self.WHITE, 10, 100)
+        my_paddle.rect.x = my_player.coord_x
+        my_paddle.rect.y = my_player.coord_y
+        all_sprites_list.add(my_paddle)
 
-        self.other_paddle = Paddle(self.WHITE, 10, 100)
-        self.other_paddle.rect.x = self.other_players[0].coord_x
-        self.other_paddle.rect.y = self.other_players[0].coord_y
-        all_sprites_list.add(self.other_paddle)
+        other_paddle = Paddle(self.WHITE, 10, 100)
+        other_paddle.rect.x = other_players[0].coord_x
+        other_paddle.rect.y = other_players[0].coord_y
+        all_sprites_list.add(other_paddle)
 
         # The clock will be used to control how fast the screen updates
         clock = pygame.time.Clock()
@@ -88,29 +79,22 @@ class GameController:
                 if event.type == pygame.QUIT:  # If user clicked close
                     carryOn = False  # Flag that we are done so we exit this loop
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_x:  # Pressing the x Key will quit the game
+                    if event.key == pygame.K_x:
                         carryOn = False
                     if event.key == pygame.K_UP:
-                        self.my_paddle.moveUp(5)
-                        self.mq_channel.basic_publish(
-                            exchange=self.exchange,
-                            routing_key=self.routing_key,
-                            body=pickle.dumps(
-                                {'action': "up", 'player_id': str(self.my_player.uuid)}))
-                    if event.key == pygame.K_DOWN:  # Pressing the x Key will quit the game
-                        self.my_paddle.moveDown(5)
-                        self.mq_channel.basic_publish(
-                            exchange=self.exchange,
-                            routing_key=self.routing_key,
-                            body=pickle.dumps(
-                                {'action': "down", 'player_id': str(self.my_player.uuid)}))
+                        my_paddle.moveUp(5)
+                        communicator.publish({'action': "up", 'player_id': str(my_player.uuid)})
+                    if event.key == pygame.K_DOWN:
+                        my_paddle.moveDown(5)
+                        communicator.publish({'action': "down", 'player_id': str(my_player.uuid)})
+
             try:
-                message = self.queue_events.get_nowait()
-                self.queue_events.task_done()
+                message = queue_events.get_nowait()
+                queue_events.task_done()
                 if message['action'] == "up":
-                    self.other_paddle.moveUp(5)
+                    other_paddle.moveUp(5)
                 elif message['action'] == "down":
-                    self.other_paddle.moveDown(5)
+                    other_paddle.moveDown(5)
             except queue.Empty:
                 pass
                 # print("Was empty")
@@ -119,23 +103,23 @@ class GameController:
             all_sprites_list.update()
 
             # Check if the ball is bouncing against any of the 4 walls:
-            if self.ball.rect.x >= 690:
+            if ball.rect.x >= 690:
                 scoreA += 1
-                self.ball.velocity[0] = -self.ball.velocity[0]
-            if self.ball.rect.x <= 0:
+                ball.velocity[0] = -ball.velocity[0]
+            if ball.rect.x <= 0:
                 scoreB += 1
-                self.ball.velocity[0] = -self.ball.velocity[0]
-            if self.ball.rect.y > 490:
-                self.ball.velocity[1] = -self.ball.velocity[1]
-            if self.ball.rect.y < 0:
-                self.ball.velocity[1] = -self.ball.velocity[1]
+                ball.velocity[0] = -ball.velocity[0]
+            if ball.rect.y > 490:
+                ball.velocity[1] = -ball.velocity[1]
+            if ball.rect.y < 0:
+                ball.velocity[1] = -ball.velocity[1]
 
                 # Detect collisions between the ball and the paddles
-            if pygame.sprite.collide_mask(self.ball, self.my_paddle):
-                self.ball.bounce()
+            if pygame.sprite.collide_mask(ball, my_paddle):
+                ball.bounce()
 
-            if pygame.sprite.collide_mask(self.ball, self.other_paddle):
-                self.ball.bounce()
+            if pygame.sprite.collide_mask(ball, other_paddle):
+                ball.bounce()
 
             # --- Drawing code should go here
             # First, clear the screen to black.
