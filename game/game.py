@@ -50,8 +50,6 @@ class GameController:
         self.screen.blit(pygame.font.SysFont('Helvetica', 36).render(
             'Waiting for another player to join...', 1, self.WHITE), (90, 10))
         pygame.display.update()
-        import time
-        time.sleep(5)
 
     def play(self):
         self.ball = Ball(self.WHITE, 10, 10)

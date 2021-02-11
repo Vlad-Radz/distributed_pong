@@ -129,6 +129,8 @@ class Player:
             game_controller: Type[GameController]):
         self.initiator = initiator
 
+        # TODO: here we should init Player
+        # TODO: also pass communicator to player and make a method of publishing
         my_player, other_players = initiator.get_configs()
         print(my_player, other_players)
         my_id = str(my_player.uuid)
@@ -150,7 +152,7 @@ class Player:
             other_players=other_players,
             queue_events=queue_events,
             mq_channel=mq_channel,  # TODO: these 3 lines are bad; use an async queue instead, to keep division of responsibilities
-            exchange=self.communicator.exchange,
+            exchange=self.communicator.exchange,  # TODO: now it's a violation of the Law of Demeter
             routing_key=self.communicator.my_routing_key)
         self.game_controller.play()
 
