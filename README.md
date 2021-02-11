@@ -49,7 +49,7 @@ starting coordinates for paddles) to each connection. The role of the server fin
 6. ID given by server is used as topic in message broker (in our case - RabbitMQ). That means, that each connection
 (instance of `run.py`) uses own ID for sending own moves, and subscribes to topics of other connections to get moves of
 other players. Connection is listening for the topics in background (implemented using `threading` and `asyncio`).
-7. `Pygame` is being rendered on each instance.  
+7. `pygame` is being rendered on each instance.  
 
 ## Deployment
 1. Setup rabbitmq using docker - run on your localhost;
@@ -60,3 +60,18 @@ other players. Connection is listening for the topics in background (implemented
 
 ## References
 For game objects and `game.py` I heavily used codebase from https://www.101computing.net/pong-tutorial-using-pygame-adding-a-scoring-system/.
+Also I was inspired by socket implementation of https://github.com/techwithtim/Network-Game-Tutorial.
+
+## Next steps
+I always thought that games as learning method is lame, until this one. So I would like to continue working on this project,
+and make a useful tutorial for others about distributed systems and how to build them in Python.
+
+My plan:
+- Fix the bugs - make the game run;
+- Decide whether all data except own moves of a player should come centralized (from a server), or P2P 
+(also using consensus finding to determine, who starts the game);
+- Check diff. modes in RabbitMQ and demonstrate pros and cons of each;
+- Build abstraction from implementation of communication between players - can be P2P or via dispatcher, using
+message broker or another technology. Use DDD and ports & adapters design pattern;
+- Try diff. implementation of communication: websockets, socket.io, ...;
+- Fix communication between containers & enable GUI app running inside. Check diff. networking possibilities.
