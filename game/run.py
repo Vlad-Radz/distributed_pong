@@ -152,6 +152,7 @@ class Player:
             mq_channel=mq_channel,  # TODO: these 3 lines are bad; use an async queue instead, to keep division of responsibilities
             exchange=self.communicator.exchange,
             routing_key=self.communicator.my_routing_key)
+        self.game_controller.play()
 
 
 # I use same host for communication over sockets and message broker

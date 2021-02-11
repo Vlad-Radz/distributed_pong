@@ -6,26 +6,33 @@ from typing import List
 import pickle
 
 import pygame
-import pika
 
 from game_objects.paddle import Paddle
 from game_objects.ball import Ball
-from player_config import PlayerConfig
 
 
 class GameController:
 
     # TODO: my_paddle: check for key pressing inside pygame event loop.
+    # If no pressed, then check the queue --> should be as attribute
+    # We should get not only the move, but also the routing_key --> loop over paddled and move the ones, whose was moved
+    # --> list of paddles
+    # Also I should get coordinates for my_paddle
     def __init__(
             self,
-            my_player: PlayerConfig,
+            my_player,
             other_players: List,
             queue_events: queue.Queue,
-            mq_channel: pika.channel.Channel,
-            exchange: str,
-            routing_key: str):
+            mq_channel,
+            exchange,
+            routing_key):
         print(routing_key)
         self.queue_events = queue_events
+        self.my_player = my_player
+        self.other_players = other_players
+        self.mq_channel = mq_channel
+        self.exchange = exchange
+        self.routing_key = routing_key
 
         pygame.init()
 
@@ -38,6 +45,15 @@ class GameController:
         self.screen = pygame.display.set_mode(size)
         pygame.display.set_caption("Pong")
 
+        bg = pygame.image.load("../static/background_game_start.gif")
+        self.screen.blit(bg, (0, 0))
+        self.screen.blit(pygame.font.SysFont('Helvetica', 36).render(
+            'Waiting for another player to join...', 1, self.WHITE), (90, 10))
+        pygame.display.update()
+        import time
+        time.sleep(5)
+
+    def play(self):
         self.ball = Ball(self.WHITE, 10, 10)
         self.ball.rect.x = 345
         self.ball.rect.y = 195
@@ -47,13 +63,13 @@ class GameController:
         all_sprites_list.add(self.ball)
 
         self.my_paddle = Paddle(self.WHITE, 10, 100)
-        self.my_paddle.rect.x = my_player.coord_x
-        self.my_paddle.rect.y = my_player.coord_y
+        self.my_paddle.rect.x = self.my_player.coord_x
+        self.my_paddle.rect.y = self.my_player.coord_y
         all_sprites_list.add(self.my_paddle)
 
         self.other_paddle = Paddle(self.WHITE, 10, 100)
-        self.other_paddle.rect.x = other_players[0].coord_x
-        self.other_paddle.rect.y = other_players[0].coord_y
+        self.other_paddle.rect.x = self.other_players[0].coord_x
+        self.other_paddle.rect.y = self.other_players[0].coord_y
         all_sprites_list.add(self.other_paddle)
 
         # The clock will be used to control how fast the screen updates
@@ -78,18 +94,18 @@ class GameController:
                         carryOn = False
                     if event.key == pygame.K_UP:
                         self.my_paddle.moveUp(5)
-                        mq_channel.basic_publish(
-                            exchange=exchange,
-                            routing_key=routing_key,
+                        self.mq_channel.basic_publish(
+                            exchange=self.exchange,
+                            routing_key=self.routing_key,
                             body=pickle.dumps(
-                                {'action': "up", 'player_id': str(my_player.uuid)}))
+                                {'action': "up", 'player_id': str(self.my_player.uuid)}))
                     if event.key == pygame.K_DOWN:  # Pressing the x Key will quit the game
                         self.my_paddle.moveDown(5)
-                        mq_channel.basic_publish(
-                            exchange=exchange,
-                            routing_key=routing_key,
+                        self.mq_channel.basic_publish(
+                            exchange=self.exchange,
+                            routing_key=self.routing_key,
                             body=pickle.dumps(
-                                {'action': "down", 'player_id': str(my_player.uuid)}))
+                                {'action': "down", 'player_id': str(self.my_player.uuid)}))
             try:
                 message = self.queue_events.get_nowait()
                 self.queue_events.task_done()
@@ -104,9 +120,6 @@ class GameController:
             # --- Game logic should go here
             all_sprites_list.update()
 
-            # TODO remove
-            # if self.my_player.eligible_to_start:
-
             # Check if the ball is bouncing against any of the 4 walls:
             if self.ball.rect.x >= 690:
                 scoreA += 1
@@ -119,8 +132,7 @@ class GameController:
             if self.ball.rect.y < 0:
                 self.ball.velocity[1] = -self.ball.velocity[1]
 
-            print(self.ball.rect)
-            # Detect collisions between the ball and the paddles
+                # Detect collisions between the ball and the paddles
             if pygame.sprite.collide_mask(self.ball, self.my_paddle):
                 self.ball.bounce()
 
@@ -147,7 +159,7 @@ class GameController:
             pygame.display.flip()
 
             # --- Limit to 60 frames per second
-            clock.tick(10)
+            clock.tick(20)
 
         # Once we have exited the main program loop we can stop the game engine:
         pygame.quit()

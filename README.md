@@ -15,6 +15,7 @@ This project shows how a famous game Pong can be created using asynchronous & so
 - Bugs:
     - **BUG**: my implementation has a problem, that I don't assure, that all players subscribed to the necessary topics in
     message broker and thus can miss messages --> count can differ on diff. hosts;
+    - **BUG**: what if a player connects to server, and then leaves again?
     - **BUG**: if connection with one host was lost, I don't see that on other host.
 - Environment:
     - no proper deployment; I tried to do it with Docker, but lacked time for this. My attempts are in a separate branch.
