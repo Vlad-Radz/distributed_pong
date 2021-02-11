@@ -9,14 +9,12 @@ This project shows how a famous game Pong can be created using asynchronous & so
 - no experience developing games;
 - very good coffee without caffeine (so not really useful, but still tasty).
 
-## Results, or why this codebase sucks
+## Results, or why does this codebase suck
 - Acceptance criteria:
     - I refused on 4 players, and concentrated on 2 (acceptance criteria not fulfilled);
 - Bugs:
     - **BUG**: my implementation has a problem, that I don't assure, that all players subscribed to the necessary topics in
     message broker and thus can miss messages --> count can differ on diff. hosts;
-    - **BUG**: I worked for the 1st time with `pygame` and didn't know that ball is going to fly
-    into diff. directions on diff. hosts --> so game looks actually different on 2 hosts;
     - **BUG**: if connection with one host was lost, I don't see that on other host.
 - Environment:
     - no proper deployment; I tried to do it with Docker, but lacked time for this. My attempts are in a separate branch.
@@ -35,6 +33,7 @@ This project shows how a famous game Pong can be created using asynchronous & so
 2. Real-time communication over message broker (RabbitMQ) worked;
 3. Some design decisions might be not that bad.
 4. Synchronization of paddles works: what I do from one host, is shown on the other.
+5. Also ball has same movement trajectory on both hosts.
 
 ## Architecture of the system
 1. RabbitMQ runs on a server. It will be used to send information about moves of paddles (and in the future same should
