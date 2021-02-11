@@ -101,7 +101,7 @@ class Communicator:
                     print(pickle.loads(message.body))
                     print(message.routing_key)
                     # TODO: put into queue
-                    message_to_put = {'action': pickle.loads(message.body), 'player_id': message.routing_key}
+                    message_to_put = pickle.loads(message.body)
                     self.queue_events.put_nowait(message_to_put)
 
     def _loop_in_thread(self, method, loop):

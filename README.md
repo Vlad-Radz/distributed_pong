@@ -12,7 +12,6 @@ This project shows how a famous game Pong can be created using asynchronous & so
 ## Results, or why this codebase sucks
 - Acceptance criteria:
     - I refused on 4 players, and concentrated on 2 (acceptance criteria not fulfilled);
-    - Even with 2 players the game doesn't work: what I do from one host, is not shown on the other.
 - Bugs:
     - **BUG**: my implementation has a problem, that I don't assure, that all players subscribed to the necessary topics in
     message broker and thus can miss messages --> count can differ on diff. hosts;
@@ -35,6 +34,7 @@ This project shows how a famous game Pong can be created using asynchronous & so
 1. Orchestarting server works well;
 2. Real-time communication over message broker (RabbitMQ) worked;
 3. Some design decisions might be not that bad.
+4. Synchronization of paddles works: what I do from one host, is shown on the other.
 
 ## Architecture of the system
 1. RabbitMQ runs on a server. It will be used to send information about moves of paddles (and in the future same should
@@ -52,7 +52,11 @@ other players. Connection is listening for the topics in background (implemented
 7. `pygame` is being rendered on each instance.  
 
 ## Deployment
-1. Setup rabbitmq using docker - run on your localhost;
+1. Setup rabbitmq using docker - run on your localhost.
+    - Using following docker command:
+        - Windows: `docker run --rm -it -d --hostname my-rabbit --name my-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management`
+        - Linux (Ubuntu): `sudo docker run --rm -it -d --hostname my-rabbit --name my-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management`
+    - Afterwards you can check the RabbitMQ dashboard under `localhost:15672`, login with user `guest`, password: `guest`.
 2. Install dependencies from requirements.txt on same host;
 3. Run server.py on same host, using 2 arguments in CLI: host (your local IPV4) and port (5555);
 4. Run run.py on same host, using 2 arguments in CLI: host (your local IPV4) and port (5555);

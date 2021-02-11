@@ -1,0 +1,73 @@
+*.pyc
+*.log
+*.csv
+.directory
+.project
+.pydevproject
+auth.tfvars
+.*.swp
+lambda.zip
+lambda.out
+.settings
+*.zip
+apidoc/build/
+Pipfile
+Pipfile.lock
+
+# Python distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+eggs/
+.eggs/
+lib/
+lib64/
+node_modules/
+*.egg-info/
+.installed.cfg
+*.egg
+dist/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Mypy
+.mypy_cache/
+
+# Coverage
+.coverage
+
+# Tox
+.tox/
+
+# MS Visual Studio Code
+.vscode
+# VS pytest cache
+.pytest_cache
+
+# JetBrains IDEs
+.idea
+
+# MacOS
+.DS_Store
+
+#pyenv
+.python-version
+
+# terraform modules, states and plan
+**/terraform.tfstate.*.backup
+**/.terraform
+**/tfplan
+
+# expluding all the .env files
+src/*.env
+
+#other
+pyvenv.cfg
+test-reports/
