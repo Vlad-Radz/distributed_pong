@@ -3,6 +3,7 @@ import uuid
 from threading import Thread
 import queue
 import pickle
+import subprocess
 
 # TODO: needs to be run through isort for the right import sorting
 # TODO: use structlog for better logging
@@ -73,7 +74,8 @@ class Orchestrator:
 
 
 # TODO: to env vars
-host = '192.168.178.43'
+host = subprocess.check_output("hostname -I", shell=True).decode("utf-8").split(" ")[0]
+# host = "192.168.178.47"
 port = 5555
 expected_players = 2
 

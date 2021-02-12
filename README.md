@@ -18,10 +18,8 @@ This project shows how a famous game Pong can be created using asynchronous & so
     - **BUG**: what if a player connects to server, and then leaves again?
     - **BUG**: if connection with one host was lost, I don't see that on other host.
 - Environment:
-    - no proper deployment; I tried to do it with Docker, but lacked time for this. My attempts are in a separate branch.
-    For now you need to do manual setup.
-    - No automated dependency management.
-    - no formatter (like `black`), `linter`, `isort` and `mypy` run;
+    - you should run server and rabbitmq on same host, otherwise it will not work;
+    - no formatter (like `black`), `linter`, `isort` and `mypy` run yet;
     - Too few docstring;
     - no tests written (I love `pytest`, and contributed to a couple of projects with it, but am not sure how to test games);
     - repo structure is bad (I actually like DDD - just fyi).
@@ -35,6 +33,7 @@ This project shows how a famous game Pong can be created using asynchronous & so
 3. Some design decisions might be not that bad.
 4. Synchronization of paddles works: what I do from one host, is shown on the other.
 5. Also ball has same movement trajectory on both hosts.
+6. Deployment is done pretty fency (although, there are some bugs).
 
 ## Architecture of the system
 1. RabbitMQ runs on a server. It will be used to send information about moves of paddles (and in the future same should
@@ -52,15 +51,16 @@ other players. Connection is listening for the topics in background (implemented
 7. `pygame` is being rendered on each instance.  
 
 ## Deployment
-1. Setup rabbitmq using docker - run on your localhost.
-    - Using following docker command:
-        - Windows: `docker run --rm -it -d --hostname my-rabbit --name my-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management`
-        - Linux (Ubuntu): `sudo docker run --rm -it -d --hostname my-rabbit --name my-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management`
-    - Afterwards you can check the RabbitMQ dashboard under `localhost:15672`, login with user `guest`, password: `guest`.
-2. Install dependencies from requirements.txt on same host;
-3. Run server.py on same host, using 2 arguments in CLI: host (your local IPV4) and port (5555);
-4. Run run.py on same host, using 2 arguments in CLI: host (your local IPV4) and port (5555);
-5. Run run.py on a different host, using 2 arguments in CLI: host (your local IPV4 from your 1st host) and port (5555).
+To run the solution, you don't need to set up virtual environment etc. You just execute 3 PEX (Python EXecutable) files, which are already pre-built for you and are located under `dist/game/`. For better convenience, you can just execute 4 command from the `Makefile`:
+1. `make setup_rabbitmq` - to set up message broker.
+2. `make run_server` - to run server.
+3. `make run_client2` - to run one client.
+4. `make run_client1` - to run another client.
+
+You execute all 4 commands on same host! Otherwise it will not work (yes, it's not optimal) (you can theoretically run clients on another host or hosts, it should actually work). And the order is important: you cannot run `client1.pex` before `client2.pex` (yes, it's yet another bug).
+
+### Prerequisites
+Python 3.7+, pip and docker should be installed.
 
 ## References
 For game objects and `game.py` I heavily used codebase from https://www.101computing.net/pong-tutorial-using-pygame-adding-a-scoring-system/.
@@ -71,11 +71,11 @@ I always thought that games as learning method is lame, until this one. So I wou
 and make a useful tutorial for others about distributed systems and how to build them in Python.
 
 My plan:
-- Fix the bugs - make the game run;
+- Fix the bugs;
 - Decide whether all data except own moves of a player should come centralized (from a server), or P2P 
 (also using consensus finding to determine, who starts the game);
 - Check diff. modes in RabbitMQ and demonstrate pros and cons of each;
 - Build abstraction from implementation of communication between players - can be P2P or via dispatcher, using
-message broker or another technology. Use DDD and ports & adapters design pattern;
+message broker or another technology. Use DDD and ports & adapters design pattern, abstract base classes;
 - Try diff. implementation of communication: websockets, socket.io, ...;
-- Fix communication between containers & enable GUI app running inside. Check diff. networking possibilities.
+- Try to run in Docker containers: gix communication between containers & enable GUI app running inside (is not so easy). Check diff. networking possibilities.

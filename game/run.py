@@ -4,6 +4,7 @@ import socket
 from typing import List, Tuple, Type
 import threading
 import queue
+import subprocess
 
 from aio_pika import connect_robust
 import pika
@@ -15,7 +16,7 @@ from game.game import GameController
 class Initiator:
     '''
     This class is responsible for communication with server:
-        1. It gets DTO for own player; if of own player is needed for creation of topic in msg broker
+        1. It gets DTO for own player; id of own player is needed for creation of topic in msg broker
         2. Afterwards it listens for socket and gets list of DTOs for all players; it should know ids of other players
         to know to what topics in message brokers to listen to.
     '''
@@ -164,7 +165,8 @@ class Player:
 
 # I use same host for communication over sockets and message broker
 # TODO: to env vars
-host = "192.168.178.43"
+# host = "192.168.178.47"
+host = subprocess.check_output("hostname -I", shell=True).decode("utf-8").split(" ")[0]
 port = 5555
 
 initiator = Initiator(host=host, port=port)
