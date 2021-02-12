@@ -8,8 +8,8 @@ import queue
 from aio_pika import connect_robust
 import pika
 
-from player_config import PlayerConfig
-from game import GameController
+from game.player_config import PlayerConfig
+from game.game import GameController
 
 
 class Initiator:

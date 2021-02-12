@@ -4,11 +4,13 @@ Reference: https://www.101computing.net/pong-tutorial-using-pygame-adding-a-scor
 import queue
 from typing import List
 import pickle
+import os
+from pathlib import Path
 
 import pygame
 
-from game_objects.paddle import Paddle
-from game_objects.ball import Ball
+from game.game_objects.paddle import Paddle
+from game.game_objects.ball import Ball
 
 class GameController:
 
@@ -30,7 +32,7 @@ class GameController:
         self.screen = pygame.display.set_mode(size)
         pygame.display.set_caption("Pong")
 
-        bg = pygame.image.load("../static/background_game_start.gif")
+        bg = pygame.image.load(os.path.join(Path(__file__).resolve().parent, 'static/background_game_start.gif'))
         self.screen.blit(bg, (0, 0))
         self.screen.blit(pygame.font.SysFont('Helvetica', 36).render(
             'Waiting for another player to join...', 1, self.WHITE), (90, 10))
@@ -38,7 +40,7 @@ class GameController:
 
     def play(
             self,
-            communicator,  # TODO: not the best pattern. Reason: non-ideal design upfront
+            communicator,  # TODO: not the best pattern passing objects that way. Reason: non-ideal design upfront
             my_player,
             other_players: List,
             queue_events: queue.Queue):

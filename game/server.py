@@ -9,7 +9,7 @@ import pickle
 
 import pika
 
-from player_config import PlayerConfig
+from game.player_config import PlayerConfig
 
 
 class Orchestrator:

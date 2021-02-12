@@ -27,7 +27,12 @@ node_modules/
 *.egg-info/
 .installed.cfg
 *.egg
-dist/
+
+# Pants workspace files
+/.pants.d/
+/.pids
+/.pants.workdir.file_lock*
+.bootstrap/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

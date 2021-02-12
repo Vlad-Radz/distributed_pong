@@ -1,0 +1,26 @@
+[GLOBAL]
+pants_version = "2.2.0"
+pantsd = true  # Enable the Pants daemon for better performance.
+
+backend_packages.add = [
+  "pants.backend.python",
+  "pants.backend.python.lint.docformatter",
+  "pants.backend.python.lint.black",
+  "pants.backend.python.lint.flake8",
+  "pants.backend.python.lint.isort"
+]
+
+[source]
+# The Python source root is the repo root. See https://www.pantsbuild.org/docs/source-roots.
+root_patterns = ["/"]
+
+[python-setup]
+interpreter_constraints = [">=3.7"]
+requirement_constraints = "constraints.txt"
+interpreter_search_paths = ["<PATH>", "<PYENV>"]
+
+[flake8]
+config = "build-support/.flake8"
+
+[isort]
+config = [".isort.cfg"]
