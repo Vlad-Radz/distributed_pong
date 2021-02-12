@@ -165,7 +165,6 @@ class Player:
 
 # I use same host for communication over sockets and message broker
 # TODO: to env vars
-# host = "192.168.178.47"
 host = subprocess.check_output("hostname -I", shell=True).decode("utf-8").split(" ")[0]
 port = 5555
 
