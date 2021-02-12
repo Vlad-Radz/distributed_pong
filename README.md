@@ -57,12 +57,12 @@ starting coordinates for paddles) to each connection. The role of the server fin
 
 ## Deployment
 To run the solution, you don't need to set up virtual environment etc. You just execute 3 PEX (Python EXecutable) files, which are already pre-built for you and are located under `dist/game/`. For better convenience, you can just execute 4 command from the `Makefile`:
-1. `make setup_rabbitmq` - to set up message broker.
+1. `make setup_rabbitmq` - to set up message broker. Wait or a couple of minutes for container to be set up fully.
 2. `make run_server` - to run server.
-3. `make run_client1` - to run one client.
+3. `make run_client2` - to run one client.
 4. `make run_client2` - to run another client.
 
-You execute the first 2 commands on same host! Otherwise it will not work (yes, it's not optimal). 3rd and 4th commands you can run on another host or hosts, or also on same host, as the first 2 - in this case sometimes game starts just for one client, for unknown reason. So I would recommend to run one client on a diff. host. If you run both clients on same hosts, then (because of the mentioned bug) the order is important: you cannot run `client1.pex` before `client2.pex` (yes, it's yet another bug).
+You should execute all 4 commands on same host! Otherwise it will not work (yes, it's not optimal). And there is another bug: sometimes you order is important: you cannot run `client1.pex` before `client2.pex` (yes, it's yet another bug).
 
 ### Prerequisites
 Python 3.7+, pip and docker should be installed.
