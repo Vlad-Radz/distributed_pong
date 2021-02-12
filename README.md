@@ -17,6 +17,8 @@ This project shows how a famous game Pong can be created using asynchronous & so
     message broker and thus can miss messages --> count can differ on diff. hosts;
     - **BUG**: what if a player connects to server, and then leaves again?
     - **BUG**: if connection with one host was lost, I don't see that on other host.
+    - **BUG**: problem with the ball: its trajctory is calculated on each host separately - so it can easily happen,
+    that game will be not synchronized on diff. hosts --> should be calculated on one of the players, or on server.
 - Environment:
     - you should run server and rabbitmq on same host, otherwise it will not work;
     - no formatter (like `black`), `linter`, `isort` and `mypy` run yet;
@@ -25,7 +27,8 @@ This project shows how a famous game Pong can be created using asynchronous & so
     - repo structure is bad (I actually like DDD - just fyi).
 - Code smells:
     - use plain `print()` instead of proper logger (I would probably use `structlog`)
-    - division of concerns is violated in some places.
+    - division of concerns is violated in some places. In general bad design of the codebase, although I fixed some issues
+    (e.g. a violation of the Law of Demeter in one place).
 
 ## Was anything achieved at all?
 1. Orchestarting server works well;
@@ -34,6 +37,8 @@ This project shows how a famous game Pong can be created using asynchronous & so
 4. Synchronization of paddles works: what I do from one host, is shown on the other.
 5. Also ball has same movement trajectory on both hosts.
 6. Deployment is done pretty fency (although, there are some bugs).
+5. Also ball has same movement trajectory on both hosts, and - with some luck - its position is 1:1 same for both players.
+6. Nice waiting windows for the game (I have a good taste for design).
 
 ## Architecture of the system
 1. RabbitMQ runs on a server. It will be used to send information about moves of paddles (and in the future same should

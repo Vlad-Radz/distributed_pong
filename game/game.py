@@ -30,7 +30,7 @@ class GameController:
         # Open a new window
         size = (700, 500)
         self.screen = pygame.display.set_mode(size)
-        pygame.display.set_caption("Pong")
+        pygame.display.set_caption('Pong')
 
         bg = pygame.image.load(os.path.join(Path(__file__).resolve().parent, 'static/background_game_start.gif'))
         self.screen.blit(bg, (0, 0))
