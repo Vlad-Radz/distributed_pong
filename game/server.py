@@ -40,6 +40,8 @@ class Orchestrator:
 
         sockets = []
         while True:
+            # TODO: maybe the State pattern would be good here (using Enum)?
+
             # `conn` is a new socket object usable to send and receive data on the connection
             # `address` is the address bound to the socket on the other end of the connection.
             conn, addr = self.socket.accept()
