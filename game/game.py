@@ -78,6 +78,7 @@ class GameController:
         while carryOn:
             # --- Main event loop
             for event in pygame.event.get():  # User did something
+                print(event)
                 if event.type == pygame.QUIT:  # If user clicked close
                     carryOn = False  # Flag that we are done so we exit this loop
                 elif event.type == pygame.KEYDOWN:

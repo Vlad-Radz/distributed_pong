@@ -75,34 +75,36 @@ class Orchestrator:
         # TODO: implement max possible number of players
 
 
-# TODO: to env vars
-host = subprocess.check_output("hostname -I", shell=True).decode("utf-8").split(" ")[0]
-# host = "192.168.178.47"
-port = 5555
-expected_players = 2
+if __name__ == "__main__":
+    # TODO: to env vars
+    host = subprocess.check_output("hostname -I", shell=True).decode("utf-8").split(" ")[0]
+    print(host)
+    # host = "192.168.178.47"
+    port = 5555
+    expected_players = 2
 
-player_left = PlayerConfig(
-    uuid=uuid.uuid4(),
-    side='left',
-    coord_x=20,
-    coord_y=200,
-    eligible_to_start=True)
+    player_left = PlayerConfig(
+        uuid=uuid.uuid4(),
+        side='left',
+        coord_x=20,
+        coord_y=200,
+        eligible_to_start=True)
 
-player_right = PlayerConfig(
-    uuid=uuid.uuid4(),
-    side='right',
-    coord_x=670,
-    coord_y=200,
-    eligible_to_start=False)  # TODO: the choice of eligible to start should happen automatically and exclude possibility of double assignment
+    player_right = PlayerConfig(
+        uuid=uuid.uuid4(),
+        side='right',
+        coord_x=670,
+        coord_y=200,
+        eligible_to_start=False)  # TODO: the choice of eligible to start should happen automatically and exclude possibility of double assignment
 
-# Not needed now, because not implemented yet
-player_up = ...
-player_down = ...
+    # Not needed now, because not implemented yet
+    player_up = ...
+    player_down = ...
 
-# I use FIFO queue since order is important for this game (from my perspective)
-players_queue = queue.Queue(maxsize=expected_players)
-players_queue.put(player_left)
-players_queue.put(player_right)
+    # I use FIFO queue since order is important for this game (from my perspective)
+    players_queue = queue.Queue(maxsize=expected_players)
+    players_queue.put(player_left)
+    players_queue.put(player_right)
 
-server = Orchestrator(host=host, port=port, my_queue=players_queue)
-server.orchestrate()
+    server = Orchestrator(host=host, port=port, my_queue=players_queue)
+    server.orchestrate()

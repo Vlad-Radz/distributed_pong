@@ -71,7 +71,7 @@ I don't know yet, if that would be needed, but we could write all moves (for all
 
 ## Deployment
 To run the solution, you don't need to set up virtual environment etc. You just execute 3 PEX (Python EXecutable) files, which are already pre-built for you and are located under `dist/game/`. For better convenience, you can just execute 4 command from the `Makefile`:
-1. `make setup_rabbitmq` - to set up message broker. Wait or a couple of minutes for container to be set up fully.
+1. `make setup_rabbitmq` - to set up message broker. Wait or a couple of minutes for container to be set up fully. You can check if RabbitMQ is running, manually on `localhost:15672` (user: `guest`, password: `guest`).
 2. `make run_server` - to run server.
 3. `make run_client2` - to run one client.
 4. `make run_client2` - to run another client.
@@ -80,6 +80,10 @@ You should execute all 4 commands on same host! Otherwise it will not work (yes,
 
 ### Prerequisites
 Python 3.7+, pip and docker should be installed.
+
+### Testing
+
+Run the following command in the root of the repo: `PYTHONPATH=. pytest . -vv`
 
 ## References
 For game objects and `game.py` I heavily used codebase from https://www.101computing.net/pong-tutorial-using-pygame-adding-a-scoring-system/.

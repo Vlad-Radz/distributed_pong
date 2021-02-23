@@ -60,12 +60,10 @@ class Communicator:
             self,
             msg_broker_host: str,
             my_routing_key: str,
-            other_routing_keys: List[str],
             topics: List[str],
             queue_events: asyncio.Queue):
         self.msg_broker_host = msg_broker_host
         self.my_routing_key = my_routing_key
-        self.other_routing_keys = other_routing_keys
         self.mq_channel = self._set_up_msg_broker_connection()
         self.topics = topics
         self.exchange = 'moves'  # TODO: is not good that it knows the name of exchange - should get it from orchestrator
@@ -73,9 +71,9 @@ class Communicator:
         # TODO: I need to close connection somewhere: `connection.close()`
 
     def _set_up_msg_broker_connection(self):
-        connection = pika.BlockingConnection(
+        mq_connection = pika.BlockingConnection(
             pika.ConnectionParameters(host=self.msg_broker_host))
-        channel = connection.channel()
+        channel = mq_connection.channel()
         return channel
 
     async def _listen(self, loop):
@@ -101,7 +99,7 @@ class Communicator:
                 async with message.process():
                     print(pickle.loads(message.body))
                     print(message.routing_key)
-                    message_to_put = pickle.loads(message.body)
+                    message_to_put = pickle.loads(message.body)  # TODO: actually no need to pickle here
                     self.queue_events.put_nowait(message_to_put)
 
     def _loop_in_thread(self, method, loop):
@@ -112,6 +110,7 @@ class Communicator:
         '''
         This method will be run in background, listening to new events
         '''
+        # TODO: I know that it's a bad practice to run async code in a thread for this use case - code should be rewritten as coroutines.
         loop = asyncio.get_event_loop()
         t = threading.Thread(target=self._loop_in_thread, args=(self._listen,loop,))
         t.start()
@@ -120,6 +119,7 @@ class Communicator:
         '''
         Facade method for the publish method of RabbitMQ
         '''
+        self.mq_channel.exchange_declare(exchange=self.exchange)
         self.mq_channel.basic_publish(
             exchange=self.exchange,
             routing_key=self.my_routing_key,
@@ -152,7 +152,6 @@ class Player:
         self.communicator = communicator(
             msg_broker_host=mq_host,
             my_routing_key=my_id,
-            other_routing_keys=other_players_ids,
             topics=other_players_ids,
             queue_events=queue_events)
         self.communicator.listen()  # This will open a thread with daemon listening for messages from message broker
@@ -163,14 +162,15 @@ class Player:
             queue_events=queue_events)
 
 
-# I use same host for communication over sockets and message broker
-# TODO: to env vars
-host = subprocess.check_output("hostname -I", shell=True).decode("utf-8").split(" ")[0]
-port = 5555
+if __name__ == "__main__":
+    # I use same host for communication over sockets and message broker
+    # TODO: to env vars
+    host = subprocess.check_output("hostname -I", shell=True).decode("utf-8").split(" ")[0]
+    port = 5555
 
-initiator = Initiator(host=host, port=port)
-player = Player(
-    mq_host=host,
-    initiator=initiator,
-    communicator=Communicator,
-    game_controller=GameController)
+    initiator = Initiator(host=host, port=port)
+    player = Player(
+        mq_host=host,
+        initiator=initiator,
+        communicator=Communicator,
+        game_controller=GameController)
